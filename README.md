@@ -3,6 +3,7 @@
 
 ### Directory Structure:
 
+```text
 ansible/
 ├── group_vars/
 │   ├── control_plane.yml
@@ -15,8 +16,9 @@ ansible/
 │   └── kubeadm-worker/      # Worker node tasks
 ├── site.yml                 # Entrypoint playbook
 └── vars/
-    └── main.yml             # Global variables
+   └── main.yml             # Global variables
 kubernetes/
+```
 
 ## Prerequisites
 - SSH access to all hosts with sudo privileges.
