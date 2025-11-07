@@ -43,6 +43,7 @@ kubernetes/
 - Use `kubectl` on the control plane node to verify nodes are healthy:
 
 `kubectl get nodes -o wide`
+![Screencast from 2025-11-07 14-34-17](https://github.com/user-attachments/assets/14eb7498-85aa-4f8b-bd75-9276a79e8aaa)
 
 ## Customization
 - Adjust or add roles as needed for cloud-specific steps, monitoring setup, or advanced networking integrations.
