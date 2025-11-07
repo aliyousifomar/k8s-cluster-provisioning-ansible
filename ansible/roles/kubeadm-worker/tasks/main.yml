@@ -1,0 +1,36 @@
+---
+
+- name: Reset Kubernetes cluster state
+  become: yes
+  shell: |
+    kubeadm reset -f
+    rm -rf /etc/kubernetes/manifests/*
+    rm -rf /var/lib/etcd/*
+    systemctl stop kubelet
+    systemctl stop crio
+    systemctl start crio
+    systemctl start kubelet
+  ignore_errors: true
+  
+- name: Wait for kubeadm join command to be available
+  wait_for:
+    path: /tmp/kubeadm_join_cmd.sh
+    state: present
+    timeout: 300
+  delegate_to: "{{ groups['control_plane'][0] }}"
+  run_once: true
+
+- name: Fetch kubeadm join command from control plane
+  slurp:
+    src: /tmp/kubeadm_join_cmd.sh
+  delegate_to: "{{ groups['control_plane'][0] }}"
+  register: join_command
+
+- name: Decode kubeadm join command
+  set_fact:
+    kubeadm_join_command: "{{ join_command.content | b64decode | trim }}"
+
+- name: Join the Kubernetes worker node to the cluster
+  command: "{{ kubeadm_join_command }} --ignore-preflight-errors=all"
+  args:
+    creates: /etc/kubernetes/kubelet.conf

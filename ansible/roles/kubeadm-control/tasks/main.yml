@@ -1,0 +1,61 @@
+---
+- name: Reset Kubernetes cluster state
+  become: yes
+  shell: |
+    kubeadm reset -f
+    rm -rf /etc/kubernetes/manifests/*
+    rm -rf /var/lib/etcd/*
+    systemctl stop kubelet
+    systemctl stop crio
+    systemctl start crio
+    systemctl start kubelet
+  ignore_errors: true
+- name: Initialize Kubernetes control plane
+  command: >
+    kubeadm init
+    --apiserver-advertise-address={{ ansible_default_ipv4.address }}
+    --pod-network-cidr=10.244.0.0/16
+  register: kubeadm_init_output
+  changed_when: "'initialized' in kubeadm_init_output.stdout"
+
+- name: add CNI plugin - Flannel
+  command: >
+    kubectl apply -f https://raw.githubusercontent.com/coreos/flannel/master/Documentation/kube-flannel.yml
+  become: yes
+  environment:
+    KUBECONFIG: /etc/kubernetes/admin.conf
+  retries: 5
+  delay: 15
+  register: flannel_apply
+  until: flannel_apply.rc == 0
+
+- name: Create .kube directory for user1 user
+  file:
+    path: /home/user1/.kube
+    state: directory
+    owner: user1
+    group: user1
+    mode: 0755
+
+- name: Copy admin kubeconfig to user's .kube directory
+  become: yes
+  copy:
+    src: /etc/kubernetes/admin.conf
+    dest: /home/user1/.kube/config
+    owner: user1
+    group: user1
+    mode: 0644
+    remote_src: yes
+
+- name: Save kubeadm worker join command
+  shell: |
+    kubeadm token create --print-join-command > /tmp/kubeadm_join_cmd.sh
+
+- name: Fetch kubeadm join command for worker nodes
+  slurp:
+    src: /tmp/kubeadm_join_cmd.sh
+  register: join_command
+
+- name: Set join command fact for use in worker role
+  set_fact:
+    kubeadm_join_command: "{{ join_command.content | b64decode | trim }}"

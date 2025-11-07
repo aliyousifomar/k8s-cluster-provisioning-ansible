@@ -1,0 +1,20 @@
+---
+- name: Kubernetes Cluster Setup - control plane
+  hosts: control_plane
+  become: yes
+  vars_files:
+    - ../vars/main.yml
+
+  roles:
+    - common
+    - kubeadm-control
+
+- name: Kubernetes Cluster Setup - worker node
+  hosts: worker
+  become: yes
+  vars_files:
+    - ../vars/main.yml
+
+  roles:
+    - common
+    - kubeadm-worker
