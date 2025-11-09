@@ -42,6 +42,7 @@ kubernetes/
 
 *note:* The following screenshot shows the playbook running:
 
+![Screencast from 2025-11-09 09-37-37](https://github.com/user-attachments/assets/6cd02583-25aa-4f75-9e71-d2ec5b87a02a)
 
 
 4. **Validate deployment:**
