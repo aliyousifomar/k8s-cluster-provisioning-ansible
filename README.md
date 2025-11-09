@@ -63,3 +63,6 @@ kubernetes/
 - CI/CD integration.
 - Automated upgrade.
 - Automated Security scanning for the cluster on Infrastructure level.
+
+## Additions:
+- Added another worker node by creating a playbook and modifying the hosts file to add the details of the targeted VM.
