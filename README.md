@@ -40,6 +40,9 @@ kubernetes/
 
 `ansible-playbook -i ansible/inventory/hosts ansible/site.yml -K  # where -K is to supply the sudo/become password`
 
+*note:* The following screenshot shows the playbook running:
+
+
 
 4. **Validate deployment:**
 - Use `kubectl` on the control plane node to verify nodes are healthy:
