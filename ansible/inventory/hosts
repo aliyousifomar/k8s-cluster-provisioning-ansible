@@ -3,9 +3,11 @@ jumpbox ansible_host=192.168.178.138 ansible_user=user1
 
 [control_plane]
 control-plane ansible_host=192.168.3.26 ansible_user=user1
-[worker]
+[worker1]
 worker-node ansible_host=192.168.122.214 ansible_user=user1
-
+[worker2]
+worker-node ansible_host=192.168.3.101 ansible_user=user1
 [k8s_cluster:children]
 control_plane
-worker
+worker1
+worker2

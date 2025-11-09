@@ -52,10 +52,8 @@ kubernetes/
 - Templates and variables can be extended to support different OS families or Kubernetes distributions.
 
 ## Known Limitations
-- Tested primarily with Ubuntu 24.04.3 LTS.
-- VMs running on two x KVM/QEMU hosts.
 - Assumes passwordless SSH connectivity.
-- Network plugin default requires outbound internet access.
+- Packages and repositories used require outbound internet access. This can be avoided by implementing a local repository in a secured environment.
 
 ## Future Enhancements
 
