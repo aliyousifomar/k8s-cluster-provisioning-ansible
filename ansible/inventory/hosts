@@ -7,7 +7,11 @@ control-plane ansible_host=192.168.3.26 ansible_user=user1
 worker-node ansible_host=192.168.122.214 ansible_user=user1
 [worker2]
 worker-node ansible_host=192.168.3.101 ansible_user=user1
+[worker3]
+worker-node ansible_host=192.168.122.3 ansible_user=user1
+
 [k8s_cluster:children]
 control_plane
 worker1
 worker2
+worker3
