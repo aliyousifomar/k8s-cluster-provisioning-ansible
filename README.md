@@ -72,3 +72,67 @@ kubernetes/
 
 ## Additions:
 - Added another worker node by creating a playbook and modifying the hosts file to add the details of the targeted VM.
+
+# Adding monitoring solution to the cluster  📈 
+
+## 1. Overview
+A brief overview of the monitoring stack setup, including components like Prometheus, Grafana, Alertmanager, etc.
+
+## 2. Prerequisites
+- Kubernetes cluster ready and accessible
+- Helm installed and configured
+- Namespace created: `monitoring`
+
+## 3. Prepare Environment
+
+```bash
+# Create the monitoring namespace
+kubectl create namespace monitoring
+
+# Add Prometheus Helm repository
+helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
+helm repo update
+
+# Install Prometheus stack
+helm install prometheus prometheus-community/kube-prometheus-stack -n monitoring
+```
+
+## 4. Configure Helm Values
+Create or update your `values.yaml` with the following key settings to expose Grafana on a NodePort:
+
+```yaml
+grafana:
+adminPassword: ""
+  extraSecretMounts:
+    - name: grafana-admin-password
+      secretName: grafana-admin-password
+      mountPath: /etc/secrets/grafana
+      defaultMode: 0440
+  adminPasswordFile: /etc/secrets/grafana/grafana-admin-password
+ # The following will make the service available on a node-IP (worker node) on port 30432
+ service:
+   type: NodePort
+   nodePort: 30432
+image:
+repository: docker.io/grafana/grafana
+tag: 9.3.8
+```
+
+## 5. Install/Upgrade the Stack
+
+```bash
+helm upgrade --install monitoring-stack prometheus-community/kube-prometheus-stack -n monitoring -f values.yaml --timeout 10m0s
+
+```
+
+
+## 6. Check Deployment Status
+
+```bash
+helm status monitoring-stack -n monitoring
+kubectl -n monitoring get pods
+```
+
+
+
+

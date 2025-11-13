@@ -1,0 +1,10 @@
+grafana:
+  adminPassword: ""
+  extraSecretMounts:
+    - name: grafana-admin-password
+      secretName: grafana-admin-password
+      mountPath: /etc/secrets/grafana
+      defaultMode: 0440
+  adminPasswordFile: /etc/secrets/grafana/grafana-admin-password
+  image:
+    image: docker.io/grafana/grafana:9.3.8
