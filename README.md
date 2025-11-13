@@ -1,6 +1,9 @@
 # k8s-cluster-provisioning-ansible
 
 
+![Screencast from 2025-11-13 14-51-05 (2)](https://github.com/user-attachments/assets/7193bd84-3c5c-4eee-b513-0f838d729375)
+
+
 ### Directory Structure:
 
 ```text
