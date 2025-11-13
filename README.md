@@ -4,20 +4,35 @@
 ### Directory Structure:
 
 ```text
-ansible/
-├── group_vars/
-│   ├── control_plane.yml
-│   └── worker.yml
-├── inventory/
-│   └── hosts
-├── roles/
-│   ├── common/              # General setups
-│   ├── kubeadm-control/     # Control plane node tasks
-│   └── kubeadm-worker/      # Worker node tasks
-├── site.yml                 # Entrypoint playbook
-└── vars/
-   └── main.yml             # Global variables
-kubernetes/
+├── ansible
+│   ├── group_vars
+│   │   ├── control_plane.yml
+│   │   └── worker.yml
+│   ├── inventory
+│   │   └── hosts
+│   ├── roles
+│   │   ├── common
+│   │   │   ├── handlers
+│   │   │   │   └── main.yml
+│   │   │   └── tasks
+│   │   │       └── main.yml
+│   │   ├── kubeadm-control
+│   │   │   └── tasks
+│   │   │       └── main.yml
+│   │   └── kubeadm-worker
+│   │       └── tasks
+│   │           └── main.yml
+│   ├── site.yml
+│   ├── vars
+│   │   └── main.yml
+│   └── worker2.yml
+├── kubernetes
+│   └── monitoring
+│       ├── monitoring.coreos.com_prometheuses.yaml
+│       ├── role-rbinding-read-secret.yaml
+│       └── values.yaml
+├── LICENSE
+└── README.md
 ```
 
 ## Prerequisites
