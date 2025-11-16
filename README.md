@@ -173,7 +173,7 @@ kubectl -n monitoring get pods
    - Configure group variables for Kubernetes network CIDR, VIP address, tokens, etc.
 
 2. **Run site Setup Playbook:**
-`ansible-playbook -i inventory/hosts site.yml --limit control_plane -K`
+`ansible-playbook -i inventory/hosts site.yml -K`
 
 # Insert the playbook run here
 
