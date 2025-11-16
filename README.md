@@ -1,7 +1,8 @@
 # k8s-cluster-provisioning-ansible
 
 
-![Screencast from 2025-11-13 18-50-03](https://github.com/user-attachments/assets/ffa75625-4bf1-45e2-8075-6007f7ef1c02)
+![ansible-automation](https://github.com/user-attachments/assets/978c1aa1-dc6d-429a-ac44-87e09dbfc98e)
+
 
 
 
@@ -9,20 +10,34 @@
 ### Directory Structure:
 
 ```text
+.
 ├── ansible
 │   ├── group_vars
 │   │   ├── control_plane.yml
 │   │   └── worker.yml
 │   ├── inventory
 │   │   └── hosts
+│   ├── load-balancer.yml
 │   ├── roles
 │   │   ├── common
 │   │   │   ├── handlers
 │   │   │   │   └── main.yml
 │   │   │   └── tasks
 │   │   │       └── main.yml
+│   │   ├── haproxy-keepalived-ha
+│   │   │   ├── tasks
+│   │   │   │   └── main.yml
+│   │   │   ├── templates
+│   │   │   │   ├── haproxy.cfg.j2
+│   │   │   │   ├── haproxy-static-pod.yaml.j2
+│   │   │   │   ├── keepalived.conf.j2
+│   │   │   │   └── keepalived-static-pod.yaml.j2
+│   │   │   └── vars
+│   │   │       └── main.yml
 │   │   ├── kubeadm-control
-│   │   │   └── tasks
+│   │   │   ├── tasks
+│   │   │   │   └── main.yml
+│   │   │   └── vars
 │   │   │       └── main.yml
 │   │   └── kubeadm-worker
 │   │       └── tasks
@@ -30,7 +45,8 @@
 │   ├── site.yml
 │   ├── vars
 │   │   └── main.yml
-│   └── worker2.yml
+│   ├── worker2.yml
+│   └── worker3.yml
 ├── kubernetes
 │   └── monitoring
 │       ├── monitoring.coreos.com_prometheuses.yaml
@@ -157,6 +173,10 @@ kubectl -n monitoring get pods
 
 ### bootstrapping a cluster with multiple control planes for high availability
 
+
+![kubernetes-cluster](https://github.com/user-attachments/assets/2ff49bde-05c9-4802-a0c5-7fa6845a381e)
+
+
 - ** Load balancer: According to kubernetes guidelines, a load balancer should be deployed to provide a single point of entrance for the API server, I have used an external load balancer in a VM (used haproxy). Load balancer deployment can be viewed at `load-balancer.yml`. 
 - **External Load Balancer Support:** The first control plane node is initialized with `--control-plane-endpoint` flag pointing to your VIP or DNS, allowing all control plane nodes to share a consistent API endpoint.
 - **Automated Certificate Handling:** Using the `--upload-certs` flag, certificates are securely shared among control plane nodes during joining.
@@ -175,11 +195,14 @@ kubectl -n monitoring get pods
 2. **Run site Setup Playbook:**
 `ansible-playbook -i inventory/hosts site.yml -K`
 
-# Insert the playbook run here
+![cluster-bootstrap](https://github.com/user-attachments/assets/ea43ccf4-ba13-426b-a8c3-a246d7efb591)
+
 
 4. **Verify Cluster:**
 
-# Insert verification screencast here
+![check-cluster-nodes](https://github.com/user-attachments/assets/9353d3b3-550c-4c1c-9102-74822fd0f698)
+
+
 ---
 
 ## Recommendations and Notes
