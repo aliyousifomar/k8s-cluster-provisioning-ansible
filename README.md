@@ -153,6 +153,38 @@ helm status monitoring-stack -n monitoring
 kubectl -n monitoring get pods
 ```
 
+## Recent Progress and Improvements ✅
 
+### bootstrapping a cluster with multiple control planes for high availability
 
+- ** Load balancer: According to kubernetes guidelines, a load balancer should be deployed to provide a single point of entrance for the API server, I have used an external load balancer in a VM (used haproxy). Load balancer deployment can be viewed at `load-balancer.yml`. 
+- **External Load Balancer Support:** The first control plane node is initialized with `--control-plane-endpoint` flag pointing to your VIP or DNS, allowing all control plane nodes to share a consistent API endpoint.
+- **Automated Certificate Handling:** Using the `--upload-certs` flag, certificates are securely shared among control plane nodes during joining.
+- **Dynamic Join Command Distribution:** Join commands for control plane and worker nodes are generated and fetched dynamically, allowing seamless node addition.
+- **Pre-flight etcd Health Checks:** Before adding a control plane node, etcd cluster health is validated to prevent premature join attempts that cause learner sync errors.
+- **Retry Logic:** Joining control plane and worker nodes implement retry and delay logic to handle temporary issues with etcd sync or network delays gracefully.
+- **Node Cleanup Automation:** Kubelet service is automatically stopped and Kubernetes config files removed on nodes before attempting join, eliminating preflight errors caused by leftover state—even on freshly deployed OS images.
+- **Idempotency and Error Handling:** Tasks are designed to allow safe re-runs with explicit failure detection for distinct errors (such as “already joined”) to improve automation resilience.
 
+## Usage
+
+1. **Prepare Inventory and Variables:**
+   - Define your control plane and worker hosts in the Ansible inventory.
+   - Configure group variables for Kubernetes network CIDR, VIP address, tokens, etc.
+
+2. **Run site Setup Playbook:**
+`ansible-playbook -i inventory/hosts site.yml --limit control_plane -K`
+
+# Insert the playbook run here
+
+4. **Verify Cluster:**
+
+# Insert verification screencast here
+---
+
+## Recommendations and Notes
+
+- Ensure the external load balancer is properly configured to route port 6443 to all control plane nodes.
+- Verify networking connectivity and firewall rules permit etcd ports (2379, 2380) and Kubernetes API traffic.
+- Use idempotent Ansible running techniques and check logs/debugs during provisioning.
+- This automation assumes passwordless SSH access with a user that has sudo privileges from the Ansible control node.

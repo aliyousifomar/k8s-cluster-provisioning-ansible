@@ -1,0 +1,25 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: haproxy
+  namespace: kube-system
+spec:
+  hostNetwork: true
+  containers:
+  - name: haproxy
+    image: haproxy:2.8
+    ports:
+    - containerPort: {{ haproxy_backend_port }}
+      hostPort: {{ haproxy_backend_port }}
+      protocol: TCP
+    volumeMounts:
+    - mountPath: /etc/haproxy/haproxy.cfg
+      name: haproxy-config
+      subPath: ""
+  volumes:
+  - name: haproxy-config
+    hostPath:
+      path: /etc/haproxy/haproxy.cfg
+      type: File
+  restartPolicy: Always
+

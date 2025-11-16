@@ -1,5 +1,4 @@
----
-- name: Reset Kubernetes cluster state
+- name: Reset Kubernetes cluster state (control plane nodes)
   become: yes
   shell: |
     kubeadm reset -f
@@ -10,15 +9,60 @@
     systemctl start crio
     systemctl start kubelet
   ignore_errors: true
-- name: Initialize Kubernetes control plane
+
+- name: Initialize Kubernetes first control plane node
   command: >
     kubeadm init
+    --control-plane-endpoint={{ vip_address }}:6443
     --apiserver-advertise-address={{ ansible_default_ipv4.address }}
     --pod-network-cidr=10.244.0.0/16
+    --upload-certs
   register: kubeadm_init_output
   changed_when: "'initialized' in kubeadm_init_output.stdout"
+  when: inventory_hostname == groups['control_plane'][0]
 
-- name: add CNI plugin - Flannel
+- name: Save join control plane command for other control plane nodes
+  shell: kubeadm token create --print-join-command --certificate-key $(kubeadm init phase upload-certs --upload-certs | tail -1) > /tmp/kubeadm_join_control_plane.sh
+  when: inventory_hostname == groups['control_plane'][0]
+
+- name: Fetch join control plane command script
+  slurp:
+    src: /tmp/kubeadm_join_control_plane.sh
+  register: join_control_plane_command
+  when: inventory_hostname == groups['control_plane'][0]
+
+- name: Set join control plane command fact
+  set_fact:
+    kubeadm_join_control_plane_command: "{{ join_control_plane_command.content | b64decode | trim }}"
+  when: inventory_hostname == groups['control_plane'][0]
+
+- name: Stop kubelet service
+  systemd:
+    name: kubelet
+    state: stopped
+  ignore_errors: yes
+  when: inventory_hostname != groups['control_plane'][0] and inventory_hostname in groups['control_plane']
+
+- name: Remove old Kubernetes config files
+  file:
+    path: "{{ item }}"
+    state: absent
+  loop:
+    - /etc/kubernetes/kubelet.conf
+    - /etc/kubernetes/bootstrap-kubelet.conf
+  when: inventory_hostname != groups['control_plane'][0] and inventory_hostname in groups['control_plane']
+
+- name: Join additional control plane nodes to the cluster with retry loop
+  command: "{{ hostvars[groups['control_plane'][0]].kubeadm_join_control_plane_command }} --control-plane"
+  register: join_result
+  failed_when: "'already joined' not in join_result.stderr.lower() and join_result.rc != 0"
+  changed_when: join_result.rc == 0
+  retries: 5
+  delay: 30
+  until: join_result is succeeded
+  when: inventory_hostname != groups['control_plane'][0] and inventory_hostname in groups['control_plane']
+
+- name: Deploy Flannel CNI plugin
   command: >
     kubectl apply -f https://raw.githubusercontent.com/coreos/flannel/master/Documentation/kube-flannel.yml
   become: yes
@@ -28,34 +72,20 @@
   delay: 15
   register: flannel_apply
   until: flannel_apply.rc == 0
+  when: inventory_hostname == groups['control_plane'][0]
 
-- name: Create .kube directory for user1 user
-  file:
-    path: /home/user1/.kube
-    state: directory
-    owner: user1
-    group: user1
-    mode: 0755
+- name: Save worker join command
+  shell: kubeadm token create --print-join-command > /tmp/kubeadm_join_worker.sh
+  register: save_join_cmd
+  when: inventory_hostname == groups['control_plane'][0]
 
-- name: Copy admin kubeconfig to user's .kube directory
-  become: yes
-  copy:
-    src: /etc/kubernetes/admin.conf
-    dest: /home/user1/.kube/config
-    owner: user1
-    group: user1
-    mode: 0644
-    remote_src: yes
-
-- name: Save kubeadm worker join command
-  shell: |
-    kubeadm token create --print-join-command > /tmp/kubeadm_join_cmd.sh
-
-- name: Fetch kubeadm join command for worker nodes
+- name: Read worker join command content
   slurp:
-    src: /tmp/kubeadm_join_cmd.sh
-  register: join_command
+    src: /tmp/kubeadm_join_worker.sh
+  register: join_worker_command
+  when: inventory_hostname == groups['control_plane'][0]
 
-- name: Set join command fact for use in worker role
+- name: Set join worker command fact
   set_fact:
-    kubeadm_join_command: "{{ join_command.content | b64decode | trim }}"
+    kubeadm_join_worker_command: "{{ join_worker_command.content | b64decode | trim }}"
+  when: inventory_hostname == groups['control_plane'][0]

@@ -1,0 +1,63 @@
+- name: Create /etc/haproxy directory
+  file:
+    path: /etc/haproxy
+    state: directory
+    owner: root
+    group: root
+    mode: '0755'
+
+- name: Create /etc/keepalived directory
+  file:
+    path: /etc/keepalived
+    state: directory
+    owner: root
+    group: root
+    mode: '0755'
+
+- name: Remove existing HAProxy and Keepalived static pod manifests
+  file:
+    path: /etc/kubernetes/manifests/keepalived.yaml
+    state: absent
+- name: Remove existing HAProxy static pod manifest
+  file:
+    path: /etc/kubernetes/manifests/haproxy.yaml
+    state: absent
+- name: remove existing HAProxy and Keepalived config files
+  file:
+    path: /etc/haproxy/haproxy.cfg
+    state: absent
+- name: remove existing Keepalived config files
+  file:
+    path: /etc/keepalived/keepalived.conf
+    state: absent
+- name: Deploy HAProxy config file to control plane node
+  template:
+    src: haproxy.cfg.j2
+    dest: /etc/haproxy/haproxy.cfg
+    owner: root
+    group: root
+    mode: '0644'
+
+- name: Deploy Keepalived config file to control plane node
+  template:
+    src: keepalived.conf.j2
+    dest: /etc/keepalived/keepalived.conf
+    owner: root
+    group: root
+    mode: '0644'
+
+- name: Deploy HAProxy static pod manifest
+  template:
+    src: haproxy-static-pod.yaml.j2
+    dest: /etc/kubernetes/manifests/haproxy.yaml
+    owner: root
+    group: root
+    mode: '0644'
+
+- name: Deploy Keepalived static pod manifest
+  template:
+    src: keepalived-static-pod.yaml.j2
+    dest: /etc/kubernetes/manifests/keepalived.yaml
+    owner: root
+    group: root
+    mode: '0644'

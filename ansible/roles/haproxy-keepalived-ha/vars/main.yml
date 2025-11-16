@@ -1,0 +1,15 @@
+loadbalancer_vip: "192.168.122.180"
+loadbalancer_iface: "enp1s0"
+
+control_plane_ips:
+  - 192.168.3.26
+  - 192.168.122.88
+  - 192.168.122.55
+
+keepalived_priority_map:
+  192.168.3.26: 150
+  192.168.122.88: 140
+  192.168.122.55: 130
+
+haproxy_backend_port: 6443
+vip_cidr: "24"

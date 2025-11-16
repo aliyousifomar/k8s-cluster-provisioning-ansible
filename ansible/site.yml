@@ -9,9 +9,11 @@
     - common
     - kubeadm-control
 
-- name: Kubernetes Cluster Setup - worker node
+- name: Kubernetes Cluster Setup - worker node join
   hosts: worker
   become: yes
+  vars:
+    kubeadm_join_worker_command: "{{ hostvars[groups['control_plane'][0]].kubeadm_join_worker_command }}"
   vars_files:
     - ../vars/main.yml
 

@@ -1,0 +1,18 @@
+global
+  log stdout format raw local0
+  maxconn 2000
+defaults
+  log global
+  retries 3
+  timeout connect 5s
+  timeout client  50s
+  timeout server  50s
+frontend kubernetes-apiserver
+  bind *:{{ haproxy_backend_port }}
+  mode tcp
+  default_backend kubernetes-masters
+backend kubernetes-masters
+  mode tcp
+{% for ip in control_plane_ips %}
+  server master{{ loop.index }} {{ ip }}:{{ haproxy_backend_port }} check fall 3 rise 2
+{% endfor %}
