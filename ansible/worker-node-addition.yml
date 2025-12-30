@@ -1,0 +1,35 @@
+---
+- name: Kubernetes Cluster Setup - worker node 2
+  hosts: worker-node-4, worker-node-5
+  become: yes
+  vars_files:
+    - ../vars/main.yml
+
+  roles:
+    - common
+
+- name: Get Kubernetes join command from control plane
+  hosts: control_plane
+  become: yes
+  gather_facts: no
+  tasks:
+    - name: Retrieve join command
+      command: kubeadm token create --print-join-command
+      register: join_command
+      run_once: yes
+
+- name: Join nodes to Kubernetes cluster
+  hosts: worker-node-4, worker-node-5
+  become: yes
+  gather_facts: no
+  tasks:
+    - name: Copy join command to node
+      copy:
+        content: "{{ hostvars[groups['control_plane'][0]].join_command.stdout }}"
+        dest: /tmp/kubeadm_join.sh
+        mode: '0755'
+
+    - name: Run join command on node
+      command: sh /tmp/kubeadm_join.sh
+      args:
+        creates: /etc/kubernetes/kubelet.conf
